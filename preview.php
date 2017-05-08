@@ -1,6 +1,6 @@
 ﻿<?php
 	// Accepts 2 parameters
-	// + opcionoptinal custom parameters for new autotest file 
+	// + optional custom parameters for new autotest file 
 	//  (if there are no custom parameters passed, fields will be empty - check function getDefDecodedJson)
 	// 'fileData' -> path to the file
 	// 'adv' -> show advanced options (optional parameter, 1 or 0)
