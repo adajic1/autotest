@@ -10,6 +10,7 @@
 	// mod=3 to erase a single AT
 	// mod=4 to add a new AT
 	// mod=5 to edit custom settings
+	// mod=6 to add a new AT with data
 ?>
 <!DOCTYPE html>
 <html>
@@ -206,8 +207,57 @@
 			$k++;
 		}
 		if ($i==0) {
-			printError("There is no autotest with the given id: $id.");
-			finishAll();
+			printError("There is no autotest with the given id: $id. (someone modified the .autotest file). You have 2 options:<br>");
+			// Check which ordinal number is passed, just to know how to get passed values for new AT
+			foreach($_POST as $key=>$value) {
+				$num=intval(strrev($key));
+				if ($num!=0) break;
+			}
+			if ($num==0) {
+				foreach($_GET as $key=>$value) {
+					$num=intval(strrev($key));
+					if ($num!=0) break;
+				}
+			}	
+			// Create a form with AT data ready to be added as a new AT to this file
+		    ?>
+		    <form action="api.php" method="post" id="addNewAT">
+				<input type="hidden" name="adv" value="<?php print $advanced; ?>" >
+				<input type="hidden" id="fileData" name="fileData" value="<?php print $fileData; ?>">
+				<input type="hidden" id="mod" name="mod" value="6">
+				<input type="hidden" id="require_symbols" name="require_symbols" value='<?php print getVar("require_symbols_".$num); ?>'>
+				<input type="hidden" id="replace_symbols" name="replace_symbols" value='<?php print getVar("replace_symbols_".$num); ?>'>
+				<input type="hidden" id="code" name="code" value="<?php print getVar("code_".$num); ?>">
+				<input type="hidden" id="global_above_main" name="global_above_main" value="<?php print getVar("global_above_main_".$num); ?>">
+				<input type="hidden" id="global_top" name="global_top" value="<?php print getVar("global_top_".$num); ?>">
+				<input type="hidden" id="timeout" name="timeout" value="<?php print getVar("timeout_".$num); ?>">
+				<input type="hidden" id="vmem" name="vmem" value="<?php print getVar("vmem_".$num); ?>">
+				<input type="hidden" id="stdin" name="stdin" value="<?php print getVar("stdin_".$num); ?>">
+				<input type="hidden" id="numVar" name="numVar" value="<?php print getIntVar("numVar_".$num); ?>">
+				<?php
+				$numVar = getIntVar("numVar_".$num);
+				for ($k=0; $k<$numVar; $k++) {
+					$vrj=getVar("expected_".$num."_".($k+1));
+					print('<input type="hidden" id="expected_'.($k+1).'" name="expected_'.($k+1).'" value="'.$vrj.'">');		
+				}
+				?>
+				<?php 
+				$bol=getBoolVar("expected_exception_".$num);
+				if ($bol=='true') print "<input type='hidden' name='expected_exception' value='1'>";
+				$bol=getBoolVar("expected_crash_".$num);
+				if ($bol=='true') print "<input type='hidden' name='expected_crash' value='1'>";
+				$bol=getBoolVar("ignore_whitespace_".$num);
+				if ($bol=='true') print "<input type='hidden' name='ignore_whitespace' value='1'>";
+				$bol=getBoolVar("regex_".$num);
+				if ($bol=='true') print "<input type='hidden' name='regex' value='1'>";
+				$bol=getBoolVar("substring_".$num);
+				if ($bol=='true') print "<input type='hidden' name='substring' value='1'>";
+				?>
+			</form>
+		    <input type='button' onclick="document.getElementById('addNewAT').submit();" value='Add this AT to the end of the .autotest file'>&nbsp;
+		    <input type='button' onclick="document.getElementById('previewFile').submit();" value='Ignore AT and go to preview'>
+		    <?php
+			exit;
 		}
 		$i--;			
 		$require_symbols=getVar("require_symbols_".($i+1));
@@ -383,6 +433,91 @@
 		// Json has been created
 		saveJson($fileData, $json);	
 		print "Editing done successfully!";
+	} else if ($mod==6) { // Add completelly new AT with provided data
+		$json=json_decode(file_get_contents($fileData),true);
+		$numATs=count($json["test_specifications"]);
+		$lastId=$json["test_specifications"][$numATs-1]['id'];
+		$newATjson=json_decode(getDefAT($lastId+1),true);
+		
+		$require_symbols=getVar("require_symbols");
+		if ($require_symbols!==NULL) {
+			$p=json_decode("[$require_symbols]", true);
+			$newATjson["require_symbols"]=$p;
+		} else if (!isset($newATjson["require_symbols"])) {
+			$p=json_decode("[]", true);
+			$newATjson["require_symbols"]=$p;
+		} // Otherwise everything stays as it was
+		$replace_symbols=getVar("replace_symbols");
+		if ($replace_symbols!==NULL) {
+			$p=json_decode("[$replace_symbols]", true);
+			$newATjson["replace_symbols"]=$p;
+		} else if (!isset($newATjson["replace_symbols"])) {
+			$p=json_decode("[]", true);
+			$newATjson["replace_symbols"]=$p;
+		} // Otherwise everything stays as it was
+		$code=getVar("code");
+		if ($code!==NULL) {
+			$newATjson["code"]=$code;
+		} 
+		$global_above_main=getVar("global_above_main");
+		if ($global_above_main!==NULL) {
+			$newATjson["global_above_main"]=$global_above_main;
+		} 
+		$global_top=getVar("global_top");
+		if ($global_top!==NULL) {
+			$newATjson["global_top"]=$global_top;
+		} 			
+		if (!isset($newATjson["running_params"]))
+				$newATjson["running_params"]=array();
+		$timeout=getVar("timeout");
+		if ($timeout!==NULL) {					
+			$newATjson["running_params"]["timeout"]=$timeout;
+		} 
+		$vmem=getVar("vmem");
+		if ($vmem!==NULL) {					
+			$newATjson["running_params"]["vmem"]=$vmem;
+		} 
+		$stdin=getVar("stdin");
+		if ($stdin!==NULL) {					
+			$newATjson["running_params"]["stdin"]=$stdin;
+		} 
+		if (!isset($newATjson["expected"]))
+			$newATjson["expected"]=array();	
+		$numVar=getIntVar("numVar");
+		if ($numVar===NULL) {
+			$numVar=count($newATjson["expected"]);
+		} else if ($numVar<0) {
+			printError("'numVar_x' must be >=0.");
+			finishAll();
+		}
+		for ($k=0; $k<$numVar; $k++) {
+			// If the variable is set, take it and insert it
+			// If some variable is not set, then just insert "";
+			$expected=getVar("expected_".($k+1));
+			if ($expected!==NULL) {
+				$newATjson["expected"][$k]=$expected;
+			} else if (!isset($newATjson["expected"][$k])) {
+				$newATjson["expected"][$k]="";
+			} // Otherwise keep the old value				
+		}
+		if (count($newATjson["expected"])>$numVar) {
+			// Erase all additional variants!
+			array_splice($newATjson["expected"], $numVar);
+		}
+		$expected_exception=getBoolVar("expected_exception");			
+		$newATjson["expected_exception"]=$expected_exception;			
+		$expected_crash=getBoolVar("expected_crash");
+		$newATjson["expected_crash"]=$expected_crash;
+		$ignore_whitespace=getBoolVar("ignore_whitespace");
+		$newATjson["ignore_whitespace"]=$ignore_whitespace;
+		$regex=getBoolVar("regex");
+		$newATjson["regex"]=$regex;
+		$substring=getBoolVar("substring");
+		$newATjson["substring"]=$substring;		
+		
+		$json["test_specifications"][$numATs]=$newATjson;	
+		saveJson($fileData, $json);	
+		?>New autotest added successfully.<br><?php
 	}
 ?>
 <br>
