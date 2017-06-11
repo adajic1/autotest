@@ -164,7 +164,7 @@
 				// If some variable is not set then just insert "";
 				$expected=getVar("expected_".($i+1)."_".($k+1));
 				if ($expected!==NULL) {
-					$json["test_specifications"][$i]["expected"][$k]=$expected;
+					$json["test_specifications"][$i]["expected"][$k]=replace_n_ln($expected);
 				} else if (!isset($json["test_specifications"][$i]["expected"][$k])) {
 					$json["test_specifications"][$i]["expected"][$k]="";
 				} // Otherwise it will keep its old value				
@@ -316,7 +316,7 @@
 			// If some variable is not set, then just insert "";
 			$expected=getVar("expected_".($i+1)."_".($k+1));
 			if ($expected!==NULL) {
-				$json["test_specifications"][$i]["expected"][$k]=$expected;
+				$json["test_specifications"][$i]["expected"][$k]=replace_n_ln($expected);
 			} else if (!isset($json["test_specifications"][$i]["expected"][$k])) {
 				$json["test_specifications"][$i]["expected"][$k]="";
 			} // Otherwise keep the old value				
