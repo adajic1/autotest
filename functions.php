@@ -122,10 +122,14 @@
 		$sentence=str_replace(array("\t"),"&nbsp;&nbsp;&nbsp;&nbsp;", $sentence);		
 		return $sentence;
 	}
-	function previewformat($sentence) {
+	function previewformat($sentence, $isItExpOutput=0) {
 		$sentence=htmlentities($sentence);
 		$sentence=replace_space_nbsp($sentence);
-		$sentence=replace_n_br($sentence);
+		if ($isItExpOutput==0) { // Not expected output
+			$sentence=replace_n_br($sentence);
+		} else { // Expected output
+			$sentence=replace_ln_br($sentence);
+		}	
 		return $sentence;
 	}	
 	function getNewId() {

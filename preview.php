@@ -193,7 +193,7 @@ Number of autotests in the moment of loading: <font color="red"><?php print $num
 						?>
 						<font class="darkBlueColor">Variant <span id="var_<?php print ($j+1); ?>"><?php print ($j+1); ?></span></font><br>
 						<?php
-						print previewformat($expected[$j])."<br>";
+						print previewformat($expected[$j], 1)."<br>";
 					}
 				?>
 				</td>

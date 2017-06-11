@@ -157,7 +157,7 @@ Name of the task: <font color="red"><?php print $json["name"]; ?></font>
 							<font class="darkBlueColor">Variant <span id="num_<?php print $i; ?>_<?php print ($j+1); ?>"><?php print ($j+1); ?></span></font>
 							<input type="button" value="Delete" id="erase_<?php print $i; ?>_<?php print ($j+1); ?>" onclick="eraseVariant(this.id);">
 							<br>
-							<textarea rows="3" cols="80" name="expected_<?php print $i; ?>_<?php print ($j+1); ?>"><?php print $expected[$j]; ?></textarea>
+							<textarea rows="3" cols="80" name="expected_<?php print $i; ?>_<?php print ($j+1); ?>"><?php print replace_ln_n($expected[$j]); ?></textarea>
 							<div style="height:1px; visibility:hidden; margin:0;"></div>
 						</span>
 					<?php
