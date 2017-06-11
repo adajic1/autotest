@@ -495,7 +495,7 @@
 			// If some variable is not set, then just insert "";
 			$expected=getVar("expected_".($k+1));
 			if ($expected!==NULL) {
-				$newATjson["expected"][$k]=$expected;
+				$newATjson["expected"][$k]=replace_n_ln($expected);
 			} else if (!isset($newATjson["expected"][$k])) {
 				$newATjson["expected"][$k]="";
 			} // Otherwise keep the old value				
