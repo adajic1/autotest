@@ -98,28 +98,53 @@
 			flock($fw, LOCK_UN);
 			fclose($fw);
 		}	
-	}	
-	function replace_ln_n_br($sentence) {
-		return str_replace(array("\\r\\n", "\\r", "\\n", "\r\n","\r","\n"),"<br>", $sentence);
+	}
+	function str_replace_backslashsafe($strArray_, $str_, $targetStr_) {
+		$new="";
+		$numT=strlen($targetStr_);
+		$numA=count($strArray_);
+		for ($i=0; $i<$numT; $i++) {
+			// Go through the $targetStr_
+			$found=false;
+			for ($k=0; $k<$numA; $k++) {
+				$elem=$strArray_[$k];
+				$numE=strlen($elem);
+				if ($i+$numE<=$numT && $elem === substr($targetStr_,$i,$numE)) {
+					if ($i==0 || $targetStr_[$i-1]!=='\\') {
+						$new.=$str_;
+						$i+=$numE-1;
+						$found=true;
+						break;
+					}
+				}
+			}
+			if ($found===false) {
+				$new.=$targetStr_[$i];
+			}
+		}
+		return $new;
+	}
+	function replace_ln_n_br($sentence) { // NOT USED
+		return str_replace_backslashsafe(array("\\r\\n", "\\r", "\\n", "\r\n","\r","\n"),"<br>", $sentence);
 	}
 	function replace_n_br($sentence) {
-		return str_replace(array("\r\n","\r","\n"),"<br>", $sentence);
+		return str_replace_backslashsafe(array("\r\n","\r","\n"),"<br>", $sentence);
 	}
 	function replace_ln_br($sentence) {
-		return str_replace(array("\\r\\n", "\\r","\\n"),"<br>", $sentence);
+		return str_replace_backslashsafe(array("\\r\\n", "\\r","\\n"),"<br>", $sentence);
 	}
 	function replace_ln_n($sentence) {
-		return str_replace(array("\\r\\n", "\\r","\\n"),"\n", $sentence);
+		return str_replace_backslashsafe(array("\\r\\n", "\\r","\\n"),"\n", $sentence);
 	}
 	function replace_n_ln($sentence) {
-		return str_replace(array("\r\n","\r","\n"),"\\n", $sentence);
+		return str_replace_backslashsafe(array("\r\n","\r","\n"),"\\n", $sentence);
 	}
 	function replace_rn_ln($sentence) {
-		return str_replace(array("\\r\\n","\\r"),"\\n", $sentence);
+		return str_replace_backslashsafe(array("\\r\\n","\\r"),"\\n", $sentence);
 	}
 	function replace_space_nbsp($sentence) {
 		$sentence=str_replace(array(" "),"&nbsp;", $sentence);
-		$sentence=str_replace(array("\t"),"&nbsp;&nbsp;&nbsp;&nbsp;", $sentence);		
+		$sentence=str_replace_backslashsafe(array("\t"),"&nbsp;&nbsp;&nbsp;&nbsp;", $sentence);		
 		return $sentence;
 	}
 	function previewformat($sentence, $isItExpOutput=0) {
